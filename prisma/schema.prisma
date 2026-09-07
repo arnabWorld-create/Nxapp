@@ -1,0 +1,399 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id               String           @id @default(dbgenerated("gen_random_uuid()"))
+  name             String           @unique
+  description      String?
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @default(now())
+  users            User[]
+  role_permissions RolePermission[]
+}
+
+model Permission {
+  id               String           @id @default(dbgenerated("gen_random_uuid()"))
+  name             String           @unique
+  description      String?
+  role_permissions RolePermission[]
+}
+
+model RolePermission {
+  role_id       String
+  permission_id String
+
+  role       Role       @relation(fields: [role_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([role_id, permission_id])
+}
+
+model User {
+  id            String     @id @default(dbgenerated("gen_random_uuid()"))
+  name          String
+  email         String     @unique
+  password_hash String
+  role_id       String
+  status        UserStatus @default(ACTIVE)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @default(now())
+
+  role                                Role            @relation(fields: [role_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  statements                          Statement[]
+  imports                             Import[]
+  import_mappings                     ImportMapping[]
+  confirmed_imports                   ImportRow[]     @relation("ConfirmedByUser")
+  quantity_unit_default_confirmations Import[]        @relation("QuantityUnitDefaultConfirmedBy")
+  summary_row_acknowledgements        Import[]        @relation("SummaryRowsAcknowledgedBy")
+  audit_logs                          AuditLog[]
+  sessions                            Session[]
+  statement_approvals                 Statement[]      @relation("StatementApprovals")
+  learned_mappings                     LearnedMapping[]
+  distributors                         Distributor[]
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BrandStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum DivisionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum VariantStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum StatementStatus {
+  UPLOADED
+  PROCESSING
+  READY_FOR_REVIEW
+  APPROVED
+  PARTIALLY_IMPORTED
+  FAILED
+  CANCELLED
+}
+
+enum DistributorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ImportStatus {
+  UPLOADED
+  PROCESSING
+  READY_FOR_REVIEW
+  COMMITTED
+  FAILED
+  CANCELLED
+}
+
+enum ImportRowType {
+  DATA_ROW
+  SUMMARY_ROW
+  NON_DATA_ROW
+}
+
+enum ValidationStatus {
+  PENDING
+  VALID
+  INVALID
+  REVIEW_REQUIRED
+}
+
+enum DuplicateStatus {
+  NEW
+  EXACT_DUPLICATE
+  POSSIBLE_DUPLICATE
+}
+
+enum MappingStatus {
+  UNMAPPED
+  SUGGESTED
+  CONFIRMED
+  REJECTED
+}
+
+model Division {
+  id              String         @id @default(dbgenerated("gen_random_uuid()"))
+  name            String
+  normalized_name String
+  code            String?
+  status          DivisionStatus @default(ACTIVE)
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @default(now())
+  products        Product[]
+  learned_mappings LearnedMapping[]
+
+  @@unique([normalized_name])
+}
+
+model Distributor {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()"))
+  name               String
+  normalized_name    String
+  status             DistributorStatus  @default(ACTIVE)
+  effective_from     DateTime           @db.Date
+  effective_to       DateTime?          @db.Date
+  salesperson_user_id String?
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @default(now())
+  salesperson        User?              @relation(fields: [salesperson_user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  statements         Statement[]
+
+  @@unique([normalized_name])
+  @@index([salesperson_user_id])
+  @@index([status])
+}
+
+model Brand {
+  id                    String         @id @default(dbgenerated("gen_random_uuid()"))
+  name                  String
+  normalized_name       String
+  code                  String?
+  status                BrandStatus    @default(ACTIVE)
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @default(now())
+  products              Product[]
+  import_rows_suggested ImportRow[]    @relation("SuggestedBrand")
+  import_rows_confirmed ImportRow[]    @relation("ConfirmedBrand")
+  statement_rows        StatementRow[]
+  learned_mappings      LearnedMapping[]
+
+  @@unique([normalized_name])
+}
+
+model Product {
+  id                    String           @id @default(dbgenerated("gen_random_uuid()"))
+  brand_id              String?
+  division_id            String?
+  name                  String
+  normalized_name       String
+  code                  String?
+  status                ProductStatus    @default(ACTIVE)
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @default(now())
+  brand                 Brand?           @relation(fields: [brand_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  division              Division?        @relation(fields: [division_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  variants              ProductVariant[]
+  import_rows_suggested ImportRow[]      @relation("SuggestedProduct")
+  import_rows_confirmed ImportRow[]      @relation("ConfirmedProduct")
+  statement_rows        StatementRow[]
+  learned_mappings      LearnedMapping[]
+
+  @@unique([brand_id, normalized_name])
+  @@unique([division_id, normalized_name])
+  @@unique([id, brand_id])
+}
+
+model ProductVariant {
+  id                      String         @id @default(dbgenerated("gen_random_uuid()"))
+  product_id              String
+  variant_name            String
+  normalized_variant_name String?
+  pack_size               String?
+  strength                String?
+  status                  VariantStatus  @default(ACTIVE)
+  created_at              DateTime       @default(now())
+  updated_at              DateTime       @default(now())
+  product                 Product        @relation(fields: [product_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  import_rows_suggested   ImportRow[]    @relation("SuggestedVariant")
+  import_rows_confirmed   ImportRow[]    @relation("ConfirmedVariant")
+  statement_rows          StatementRow[]
+  learned_mappings        LearnedMapping[]
+
+  @@unique([product_id, normalized_variant_name])
+  @@unique([id, product_id])
+}
+
+model Statement {
+  id                String          @id @default(dbgenerated("gen_random_uuid()"))
+  name              String?
+  period_start_date DateTime        @db.Date
+  period_end_date   DateTime        @db.Date
+  source_file_name  String
+  source_file_path  String?
+  status            StatementStatus @default(UPLOADED)
+  uploaded_by       String?
+  distributor_id    String?
+  approved_by       String?
+  approved_at       DateTime?
+  approval_note     String?
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @default(now())
+  uploaded_by_user  User?           @relation(fields: [uploaded_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  distributor       Distributor?     @relation(fields: [distributor_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  approved_by_user  User?           @relation("StatementApprovals", fields: [approved_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  imports           Import[]
+  statement_rows    StatementRow[]
+}
+
+model Import {
+  id                                 String       @id @default(dbgenerated("gen_random_uuid()"))
+  uploaded_by                        String?
+  file_name                          String
+  file_type                          String
+  file_sha256                        String?
+  status                             ImportStatus @default(UPLOADED)
+  failure_stage                      String?
+  failure_message                    String?
+  failed_at                          DateTime?
+  statement_id                       String?
+  default_quantity_unit              String?
+  default_quantity_unit_confirmed    Boolean      @default(false)
+  default_quantity_unit_confirmed_by String?
+  default_quantity_unit_confirmed_at DateTime?
+  summary_rows_acknowledged          Boolean      @default(false)
+  summary_rows_acknowledged_by       String?
+  summary_rows_acknowledged_at       DateTime?
+  created_at                         DateTime     @default(now())
+  updated_at                         DateTime     @default(now())
+  uploaded_by_user                   User?        @relation(fields: [uploaded_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  default_quantity_unit_user         User?        @relation("QuantityUnitDefaultConfirmedBy", fields: [default_quantity_unit_confirmed_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  summary_rows_acknowledged_user     User?        @relation("SummaryRowsAcknowledgedBy", fields: [summary_rows_acknowledged_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  statement                          Statement?   @relation(fields: [statement_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  import_rows                        ImportRow[]
+}
+
+model ImportMapping {
+  id              String      @id @default(dbgenerated("gen_random_uuid()"))
+  name            String
+  file_type       String
+  mapping_json    Json
+  created_by      String?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @default(now())
+  created_by_user User?       @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  import_rows     ImportRow[]
+}
+
+model LearnedMapping {
+  id                     String          @id @default(dbgenerated("gen_random_uuid()"))
+  normalized_source_name String
+  entity_key             String
+  entity_type            String
+  brand_id               String?
+  product_id             String?
+  variant_id             String?
+  division_id            String?
+  confirmed_by_user_id   String?
+  confirmed_at           DateTime        @default(now())
+  created_at             DateTime        @default(now())
+  updated_at             DateTime        @default(now())
+  brand                  Brand?          @relation(fields: [brand_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  product                Product?        @relation(fields: [product_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  variant                ProductVariant? @relation(fields: [variant_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  division               Division?       @relation(fields: [division_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  confirmed_by_user      User?           @relation(fields: [confirmed_by_user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@unique([normalized_source_name, entity_key])
+  @@index([normalized_source_name])
+}
+
+model ImportRow {
+  id                   String           @id @default(dbgenerated("gen_random_uuid()"))
+  import_id            String
+  source_row_number    Int?
+  row_type             ImportRowType    @default(DATA_ROW)
+  non_data_reason      String?
+  raw_data_json        Json
+  parsed_data_json     Json?
+  mapping_template_id  String?
+  validation_status    ValidationStatus @default(PENDING)
+  duplicate_status     DuplicateStatus  @default(NEW)
+  suggested_brand_id   String?
+  suggested_product_id String?
+  suggested_variant_id String?
+  confirmed_brand_id   String?
+  confirmed_product_id String?
+  confirmed_variant_id String?
+  confirmed_by_user_id String?
+  confirmed_at         DateTime?
+  match_reason         String?
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @default(now())
+  import               Import           @relation(fields: [import_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  mapping_template     ImportMapping?   @relation(fields: [mapping_template_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  suggested_brand      Brand?           @relation("SuggestedBrand", fields: [suggested_brand_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  suggested_product    Product?         @relation("SuggestedProduct", fields: [suggested_product_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  suggested_variant    ProductVariant?  @relation("SuggestedVariant", fields: [suggested_variant_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  confirmed_brand      Brand?           @relation("ConfirmedBrand", fields: [confirmed_brand_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  confirmed_product    Product?         @relation("ConfirmedProduct", fields: [confirmed_product_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  confirmed_variant    ProductVariant?  @relation("ConfirmedVariant", fields: [confirmed_variant_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  confirmed_by_user    User?            @relation("ConfirmedByUser", fields: [confirmed_by_user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  statement_row        StatementRow?
+}
+
+model StatementRow {
+  id                             String           @id @default(dbgenerated("gen_random_uuid()"))
+  statement_id                   String
+  import_row_id                  String?          @unique
+  brand_id                       String?
+  product_id                     String?
+  variant_id                     String?
+  source_row_number              Int?
+  source_item_name               String
+  normalized_source_item_name    String?
+  mapping_status                 MappingStatus    @default(UNMAPPED)
+  reported_purchase_qty          Decimal?         @db.Decimal(18, 6)
+  reported_purchase_value        Decimal?         @db.Decimal(18, 4)
+  reported_sales_qty             Decimal?         @db.Decimal(18, 6)
+  reported_sales_value           Decimal?         @db.Decimal(18, 4)
+  reported_sales_return_qty      Decimal?         @db.Decimal(18, 6)
+  reported_sales_return_value    Decimal?         @db.Decimal(18, 4)
+  reported_purchase_return_qty   Decimal?         @db.Decimal(18, 6)
+  reported_purchase_return_value Decimal?         @db.Decimal(18, 4)
+  reported_closing_stock_qty     Decimal?         @db.Decimal(18, 6)
+  reported_closing_stock_value   Decimal?         @db.Decimal(18, 4)
+  quantity_unit                  String?
+  raw_row_json                   Json
+  validation_status              ValidationStatus @default(PENDING)
+  duplicate_status               DuplicateStatus  @default(NEW)
+  created_at                     DateTime         @default(now())
+  updated_at                     DateTime         @default(now())
+  statement                      Statement        @relation(fields: [statement_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  import_row                     ImportRow?       @relation(fields: [import_row_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  brand                          Brand?           @relation(fields: [brand_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  product                        Product?         @relation(fields: [product_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  variant                        ProductVariant?  @relation(fields: [variant_id, product_id], references: [id, product_id], onDelete: Restrict, onUpdate: Cascade)
+}
+
+model AuditLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  user_id     String?
+  action      String
+  entity_type String
+  entity_id   String?
+  old_value   Json?
+  new_value   Json?
+  reason      String?
+  created_at  DateTime @default(now())
+  user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+}
+
+model Session {
+  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  token      String   @unique
+  user_id    String
+  created_at DateTime @default(now())
+  expires_at DateTime
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}

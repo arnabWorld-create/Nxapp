@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "target": "ES2022",
+    "types": ["node"]
+  },
+  "include": ["next.config.mjs", "**/*.ts"]
+}
