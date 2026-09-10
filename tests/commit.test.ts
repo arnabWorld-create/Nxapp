@@ -242,7 +242,9 @@ test('Commit Engine - Service', async (t) => {
 
     const stmt = await prisma.statement.findUnique({ where: { id: result.statementId } });
     assert(stmt, 'Statement created');
-    assert.strictEqual(stmt?.status, 'READY_FOR_REVIEW');
+    assert.strictEqual(stmt?.status, 'APPROVED');
+    assert.strictEqual(stmt?.approved_by, user.id);
+    assert(stmt?.approved_at);
     assert.strictEqual(stmt?.period_start_date.toISOString().slice(0, 10), PERIOD.period_start_date);
     assert.strictEqual(stmt?.period_end_date.toISOString().slice(0, 10), PERIOD.period_end_date);
     assert.strictEqual(stmt?.source_file_name, 'test.csv');

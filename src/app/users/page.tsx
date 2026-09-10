@@ -77,11 +77,11 @@ export default function UsersPage() {
   }
 
   if (error === 'Permission denied') {
-    return <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100"><div className="mx-auto max-w-7xl"><button onClick={() => router.push('/')} className="mb-6 text-sm text-slate-400 hover:text-slate-200">Back to dashboard</button><div className="rounded-lg border border-red-900 bg-red-950/40 p-5 text-red-300">Permission denied.</div></div></main>;
+    return <main className="page-frame operational-page"><div className="mx-auto max-w-7xl"><div className="error-state">Permission denied.</div></div></main>;
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
+    <main className="page-frame operational-page">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><button onClick={() => router.push('/')} className="mb-3 text-sm text-slate-400 hover:text-slate-200">Back to dashboard</button><h1 className="text-3xl font-semibold">Users</h1><p className="mt-2 text-slate-400">Manage application access and roles.</p></div><button onClick={openCreate} disabled={!currentUserId || roles.length === 0} className="rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-50">Create user</button></div>
         {message && <div className="mb-5 rounded-lg border border-emerald-800 bg-emerald-950/30 p-4 text-emerald-300">{message}</div>}

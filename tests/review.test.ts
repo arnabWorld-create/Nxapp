@@ -689,6 +689,35 @@ test('CNX review matching accepts the canonical Item header', async (t) => {
   assert.strictEqual(response.status, 200);
 });
 
+test('CNX files without purchase columns resolve STRIP before preflight', async (t) => {
+  t.afterEach(async () => {
+    await cleanup();
+  });
+
+  process.env.STORAGE_PROVIDER = 'local';
+  const user = await createUser('MANAGER');
+  const division = await prisma.division.create({ data: { name: `CNX Unit ${Date.now()}`, normalized_name: `cnx unit ${Date.now()}` } });
+  const productName = `CNX Unit Product ${Date.now()}`;
+  const product = await prisma.product.create({ data: { name: productName, normalized_name: productName.toLowerCase(), division_id: division.id } });
+  const importRecord = await createTestImport(`Item,ClStk,ClVal,OpStk,S.Qty,S.Sch,S.Val\n${productName},5,100,10,2,0,20\n`, user.id);
+
+  await processImport(importRecord.id);
+
+  const row = await prisma.importRow.findFirst({ where: { import_id: importRecord.id } });
+  assert(row);
+  assert.equal(row.validation_status, 'VALID');
+  assert.equal((row.parsed_data_json as any).normalizedData.quantity_unit, 'STRIP');
+  assert.equal(row.confirmed_product_id, product.id);
+
+  const storedImport = await prisma.import.findUnique({ where: { id: importRecord.id } });
+  assert.equal(storedImport?.default_quantity_unit, 'STRIP');
+  assert.equal(storedImport?.default_quantity_unit_confirmed, true);
+
+  const preflight = await getCommitPreflight(importRecord.id);
+  assert.equal(preflight.reviewRequiredRows, 0);
+  assert.equal(preflight.blockers.some((blocker) => blocker.toLowerCase().includes('quantity unit')), false);
+});
+
 test('Import review persists unit decisions and summary classification', async (t) => {
   t.afterEach(async () => {
     await cleanup();

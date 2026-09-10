@@ -233,17 +233,17 @@ export function MatchReviewModal({ row, importId, onClose, onSuccess }: MatchRev
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg max-w-3xl max-h-[90vh] overflow-y-auto w-full">
+    <div className="ui-modal-backdrop" role="presentation">
+      <div className="ui-modal match-dialog" role="dialog" aria-modal="true" aria-labelledby="match-dialog-title">
         {/* Header */}
         <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Match Review</h2>
+          <h2 id="match-dialog-title" className="text-xl font-semibold">Match Review</h2>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-200"
             disabled={loading}
           >
-            ✕
+            <span aria-hidden="true">×</span>
           </button>
         </div>
 

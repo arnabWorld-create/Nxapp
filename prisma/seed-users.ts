@@ -28,6 +28,8 @@ async function main() {
       create: {
         email: u.email,
         name: u.name,
+        mobile_number: '',
+        city: '',
         password_hash,
         role_id: role.id,
         status: 'ACTIVE',

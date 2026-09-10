@@ -301,9 +301,11 @@ export async function commitImport(input: CommitImportInput): Promise<CommitImpo
           period_start_date: start,
           period_end_date: end,
           source_file_name: importRecord.file_name,
-          status: 'READY_FOR_REVIEW',
+          status: 'APPROVED',
           uploaded_by: importRecord.uploaded_by,
           distributor_id: distributor.id,
+          approved_by: userId,
+          approved_at: new Date(),
         },
       });
 
@@ -331,7 +333,7 @@ export async function commitImport(input: CommitImportInput): Promise<CommitImpo
             periodStartDate: input.periodStartDate,
             periodEndDate: input.periodEndDate,
             newImportStatus: 'COMMITTED',
-            statementStatus: 'READY_FOR_REVIEW',
+            statementStatus: 'APPROVED',
           },
         },
       });

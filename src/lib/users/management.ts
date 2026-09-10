@@ -107,7 +107,7 @@ export async function createUser(input: { name: unknown; email: unknown; passwor
   const role = await getRole(input.roleId);
   const status = validateStatus(input.status);
   try {
-    return await prisma.user.create({ data: { name, email, password_hash: hashPassword(password), role_id: role.id, status }, select: safeUserSelect });
+    return await prisma.user.create({ data: { name, email, mobile_number: '', city: '', password_hash: hashPassword(password), role_id: role.id, status }, include: { role: { select: { id: true, name: true } } } });
   } catch (error) {
     return mapDatabaseError(error);
   }

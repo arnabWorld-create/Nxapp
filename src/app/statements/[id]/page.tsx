@@ -107,9 +107,6 @@ export default function StatementDetailPage() {
   const [loading, setLoading] = useState(true);
   const [rowsLoading, setRowsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [approvalNote, setApprovalNote] = useState('');
-  const [approving, setApproving] = useState(false);
-  const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -179,26 +176,6 @@ export default function StatementDetailPage() {
     }
   }, [statementId, page, pageSize, search, divisionId, productId, variantId, mappingStatus, validationStatus]);
 
-  const approve = async () => {
-    setApproving(true);
-    setApprovalMessage(null);
-    try {
-      const response = await fetch(`/api/statements/${statementId}/approve`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ note: approvalNote }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Unable to approve statement');
-      setStatement((current) => current ? { ...current, ...data.statement } : current);
-      setApprovalMessage('Statement approved.');
-    } catch (err) {
-      setApprovalMessage(err instanceof Error ? err.message : 'Unable to approve statement');
-    } finally {
-      setApproving(false);
-    }
-  };
-
   useEffect(() => {
     let cancelled = false;
 
@@ -262,7 +239,7 @@ export default function StatementDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10">
+    <main className="page-frame statement-detail-page">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
@@ -286,28 +263,6 @@ export default function StatementDetailPage() {
               </span>
             </div>
           </div>
-          {statement.status === 'READY_FOR_REVIEW' && (
-            <div className="mt-4 rounded-lg border border-amber-800 bg-amber-900/10 p-4">
-              <p className="text-sm text-amber-200">This statement is waiting for approval.</p>
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                <input
-                  value={approvalNote}
-                  onChange={(event) => setApprovalNote(event.target.value)}
-                  maxLength={1000}
-                  placeholder="Optional approval note"
-                  className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 placeholder-slate-500"
-                />
-                <button
-                  onClick={approve}
-                  disabled={approving}
-                  className="rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white hover:bg-emerald-600 disabled:opacity-50"
-                >
-                  {approving ? 'Approving...' : 'Approve Statement'}
-                </button>
-              </div>
-              {approvalMessage && <p className="mt-3 text-sm text-slate-300">{approvalMessage}</p>}
-            </div>
-          )}
         </div>
 
         {/* Statement Info */}

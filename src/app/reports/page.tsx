@@ -87,7 +87,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
+    <main className="page-frame analytics-page">
       <div className="mx-auto max-w-[1500px]">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div><button onClick={() => router.push('/')} className="mb-3 text-sm text-slate-400 hover:text-slate-200">Back to dashboard</button><h1 className="text-3xl font-semibold">Statement Reporting</h1><p className="mt-2 text-slate-400">Approved statement results grouped by product and division.</p></div>

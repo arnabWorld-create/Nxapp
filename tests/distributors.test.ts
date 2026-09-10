@@ -45,6 +45,20 @@ test('distributor CRUD assigns a salesperson and prevents duplicate normalized n
   assert.equal((await listResponse.json()).distributors[0].id, distributorId);
 });
 
+test('salesperson creates only self-assigned distributors and cannot edit another salesperson network', async () => {
+  const managerDistributorResponse = await createDistributor(request('/distributors', managerId, 'POST', { name: `Distributor manager-owned ${suffix}`, salesperson_user_id: managerId, effective_from: '2026-01-01' }));
+  assert.equal(managerDistributorResponse.status, 201);
+  const managerDistributor = (await managerDistributorResponse.json()).distributor;
+
+  const salesCreateResponse = await createDistributor(request('/distributors', salespersonId, 'POST', { name: `Distributor salesperson-owned ${suffix}`, salesperson_user_id: managerId, effective_from: '2026-01-01' }));
+  assert.equal(salesCreateResponse.status, 201);
+  const salesDistributor = (await salesCreateResponse.json()).distributor;
+  assert.equal(salesDistributor.salesperson.id, salespersonId);
+
+  const forbiddenUpdate = await updateDistributor(request(`/distributors/${managerDistributor.id}`, salespersonId, 'PATCH', { name: `Distributor hijacked ${suffix}` }), { params: Promise.resolve({ id: managerDistributor.id }) });
+  assert.equal(forbiddenUpdate.status, 403);
+});
+
 test('missing or inactive distributor cannot be used for a new statement, while historical statements remain', async () => {
   const importRecord = await prisma.import.create({ data: { file_name: `distributor-${suffix}.csv`, file_type: '.csv', status: 'READY_FOR_REVIEW', uploaded_by: managerId } });
   const missing = await commit(request(`/imports/${importRecord.id}/commit`, managerId, 'POST', { period_start_date: '2026-01-01', period_end_date: '2026-01-31' }), { params: Promise.resolve({ id: importRecord.id }) });

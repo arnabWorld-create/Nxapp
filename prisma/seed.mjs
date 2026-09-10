@@ -76,6 +76,8 @@ async function main() {
     ...[
       'upload_import',
       'view_import',
+      'review_import',
+      'commit_import',
       'view_statement',
       'manage_mapping'
     ].map(name => ({ role_id: salesRole.id, permission_id: permissionMap[name].id })),

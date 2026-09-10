@@ -91,6 +91,7 @@ export default function ImportReviewPage() {
   const [reviewData, setReviewData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canCommit, setCanCommit] = useState(false);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -164,6 +165,13 @@ export default function ImportReviewPage() {
         const response = await fetch('/api/auth/me', { cache: 'no-store' });
         if (!response.ok) {
           router.replace('/login');
+          return;
+        }
+        const authData = await response.json();
+        const permissions = authData.user?.permissions ?? [];
+        setCanCommit(permissions.includes('commit_import'));
+        if (!permissions.includes('review_import')) {
+          setError('Permission denied');
           return;
         }
       } catch {
@@ -379,25 +387,26 @@ export default function ImportReviewPage() {
   const { import: importInfo, summary, pagination, rows } = reviewData;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10">
+    <main className="page-frame review-page">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="page-header review-header">
+          <div>
+            <p className="eyebrow">Review workspace</p>
             <div>
-              <h1 className="text-3xl font-semibold">{importInfo.fileName}</h1>
-              <p className="mt-2 text-slate-400">Import ID: {importInfo.id}</p>
-              <p className="text-slate-400">Status: {importInfo.status}</p>
-              <p className="text-slate-400">Uploaded: {new Date(importInfo.createdAt).toLocaleString()}</p>
+              <h1>{importInfo.fileName}</h1>
+              <p className="page-subtitle">Review rows, confirm master matches, and finalize this import.</p>
+              <div className="review-meta"><span>{importInfo.status.replaceAll('_', ' ')}</span><span>Uploaded {new Date(importInfo.createdAt).toLocaleString()}</span></div>
             </div>
-            <div className="flex items-center gap-3">
+          </div>
+          <div className="review-actions">
               <button
                 onClick={() => router.back()}
                 className="px-4 py-2 bg-slate-800 text-slate-200 rounded-lg hover:bg-slate-700 transition"
               >
                 Back
               </button>
-              {importInfo.status !== 'COMMITTED' && (
+              {importInfo.status !== 'COMMITTED' && canCommit && (
                 <button
                   onClick={handleOpenCommit}
                   disabled={preflightLoading || commitLoading}
@@ -418,7 +427,6 @@ export default function ImportReviewPage() {
                   Already Committed
                 </span>
               )}
-            </div>
           </div>
         </div>
 
@@ -470,34 +478,6 @@ export default function ImportReviewPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
-            <h2 className="text-lg font-semibold">Default Quantity Unit</h2>
-            <p className="mt-2 text-sm text-slate-400">Apply an explicitly selected unit only to data rows without a unit.</p>
-            {importInfo.defaultQuantityUnitConfirmed && !importInfo.defaultQuantityUnitConfirmedBy ? (
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="rounded-lg border border-emerald-800 bg-emerald-900/20 px-4 py-2 text-emerald-300">{importInfo.defaultQuantityUnit}</span>
-                <span className="text-sm text-slate-400">Automatically detected for CNX format. Rows requiring a unit: {summary.dataRowsMissingQuantityUnit}</span>
-              </div>
-            ) : (
-              <div className="mt-4 flex flex-wrap items-end gap-3">
-                <label className="text-sm text-slate-300">Unit<select value={defaultUnit} onChange={(event) => setDefaultUnit(event.target.value)} className="mt-2 block rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100"><option>PCS</option><option>BOX</option><option>STRIP</option><option>BOTTLE</option><option>CAPSULE</option><option>TABLET</option></select></label>
-                <span className="pb-2 text-sm text-slate-400">Rows requiring a unit: {summary.dataRowsMissingQuantityUnit}</span>
-                <button onClick={handleApplyDefaultUnit} disabled={unitApplying || !defaultUnit} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{unitApplying ? 'Applying...' : 'Apply and Confirm'}</button>
-              </div>
-            )}
-            {importInfo.defaultQuantityUnitConfirmed && <p className="mt-3 text-sm text-emerald-300">{importInfo.defaultQuantityUnitConfirmedBy ? `Confirmed default: ${importInfo.defaultQuantityUnit}` : `Automatically detected for CNX format: ${importInfo.defaultQuantityUnit}`}</p>}
-          </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
-            <h2 className="text-lg font-semibold">Summary / Non-data Rows</h2>
-            <p className="mt-2 text-sm text-slate-400">Detected rows remain preserved but will never become StatementRows.</p>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <span className="text-sm text-slate-300">{summary.summaryRows} summary rows ignored. {summary.nonDataRows} non-data rows preserved and excluded from commit.</span>
-              <span className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-400">Ignored / Excluded</span>
-            </div>
-          </div>
-        </div>
         {decisionError && <p className="mb-6 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">{decisionError}</p>}
 
         <div className="mb-8 rounded-lg bg-slate-900 border border-slate-800 p-6">
@@ -729,16 +709,16 @@ export default function ImportReviewPage() {
 
         {/* Commit Modal */}
         {showCommitModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="ui-modal-backdrop" role="presentation">
+            <div className="ui-modal commit-dialog" role="dialog" aria-modal="true" aria-labelledby="commit-dialog-title">
               <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Commit Import</h2>
+                <h2 id="commit-dialog-title" className="text-xl font-semibold">Commit Import</h2>
                 <button
                   onClick={handleCloseCommit}
                   className="text-slate-400 hover:text-slate-200"
                   disabled={commitLoading}
                 >
-                  ✕
+                  <span aria-hidden="true">×</span>
                 </button>
               </div>
 
@@ -878,13 +858,13 @@ export default function ImportReviewPage() {
                   <div className="space-y-4 pt-4 border-t border-slate-800 bg-amber-900/10 border-amber-800 rounded-lg p-4">
                     <h4 className="text-lg font-semibold text-amber-300">Confirm Commit</h4>
                     <p className="text-sm text-slate-300">
-                      This will create a new Statement with status <strong className="text-amber-300">READY_FOR_REVIEW</strong>
+                      This will create a finalized Statement with status <strong className="text-green-300">APPROVED</strong>
                       containing {preflightData?.eligibleRows} rows from this import.
                     </p>
                     <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
                       <p className="text-sm"><span className="text-slate-400">Period:</span> {periodStartDate} to {periodEndDate}</p>
                       <p className="text-sm"><span className="text-slate-400">Rows:</span> {preflightData?.eligibleRows}</p>
-                      <p className="text-sm"><span className="text-slate-400">Status:</span> <span className="text-amber-300">READY_FOR_REVIEW</span></p>
+                      <p className="text-sm"><span className="text-slate-400">Status:</span> <span className="text-green-300">APPROVED</span></p>
                       <p className="text-sm"><span className="text-slate-400">Source File:</span> {importInfo.fileName}</p>
                     </div>
                     <p className="text-xs text-slate-400">
@@ -920,7 +900,7 @@ export default function ImportReviewPage() {
                       <p className="text-sm"><span className="text-slate-400">Statement ID:</span> <code className="text-slate-200 font-mono">{commitResult.statementId}</code></p>
                       <p className="text-sm"><span className="text-slate-400">Committed Rows:</span> {commitResult.committedRows}</p>
                       <p className="text-sm"><span className="text-slate-400">Period:</span> {periodStartDate} to {periodEndDate}</p>
-                        <p className="text-sm"><span className="text-slate-400">Statement Status:</span> <span className="text-amber-300">READY_FOR_REVIEW</span></p>
+                        <p className="text-sm"><span className="text-slate-400">Statement Status:</span> <span className="text-green-300">APPROVED</span></p>
                       <p className="text-sm"><span className="text-slate-400">Import Status:</span> <span className="text-green-300">COMMITTED</span></p>
                       <p className="text-sm"><span className="text-slate-400">Committed At:</span> {formatCommittedAt(commitResult.committedAt)}</p>
                     </div>

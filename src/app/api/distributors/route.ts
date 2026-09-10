@@ -9,7 +9,10 @@ async function authorize(request: Request, write = false) {
   const userId = await resolveUserIdFromRequest(request);
   const user = userId ? await getUserById(userId) : null;
   if (!userId || !user) return { response: NextResponse.json({ error: 'Missing authentication' }, { status: 401 }) };
-  if (!userHasPermission(user, write ? 'manage_product' : 'view_statement')) {
+  const allowed = write
+    ? userHasPermission(user, 'manage_product') || user.role?.name === 'SALES_USER'
+    : userHasPermission(user, 'view_statement');
+  if (!allowed) {
     return { response: NextResponse.json({ error: 'Permission denied' }, { status: 403 }) };
   }
   return { user };
@@ -81,7 +84,11 @@ export async function POST(request: Request) {
     const normalizedName = normalizeText(name);
     const existing = await prisma.distributor.findUnique({ where: { normalized_name: normalizedName } });
     if (existing) return NextResponse.json({ error: 'Distributor with this name already exists', existingId: existing.id }, { status: 409 });
-    const salespersonId = typeof body?.salesperson_user_id === 'string' && body.salesperson_user_id.trim() ? body.salesperson_user_id.trim() : null;
+    const salespersonId = auth.user.role?.name === 'SALES_USER'
+      ? auth.user.id
+      : typeof body?.salesperson_user_id === 'string' && body.salesperson_user_id.trim()
+        ? body.salesperson_user_id.trim()
+        : null;
     if (salespersonId) {
       const salesperson = await prisma.user.findFirst({ where: { id: salespersonId, status: 'ACTIVE' }, select: { id: true } });
       if (!salesperson) return NextResponse.json({ error: 'Active salesperson user not found' }, { status: 400 });

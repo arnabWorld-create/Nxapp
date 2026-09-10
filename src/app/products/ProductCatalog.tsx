@@ -37,21 +37,21 @@ export default function ProductCatalog({ divisions }: { divisions: Division[] })
   const totalProductCount = divisions.reduce((total, division) => total + division.products.length, 0);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
+    <main className="page-frame operational-page">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="page-header">
           <div>
-            <a href="/" className="text-sm text-slate-400 hover:text-slate-200">Back to dashboard</a>
-            <h1 className="mt-3 text-3xl font-semibold">Products</h1>
-            <p className="mt-2 text-slate-400">Direct Master Medicine Items grouped by Division</p>
+            <p className="eyebrow">Master data</p>
+            <h1>Products</h1>
+            <p className="page-subtitle">Browse master medicine items through their division hierarchy.</p>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 text-right">
+          <div className="surface catalog-count">
             <p className="text-xs uppercase text-slate-400">Visible products</p>
             <p className="mt-1 text-2xl font-bold">{visibleProductCount} <span className="text-sm font-normal text-slate-500">/ {totalProductCount}</span></p>
           </div>
         </div>
 
-        <section className="mb-8 rounded-lg border border-slate-800 bg-slate-900 p-5" aria-label="Product filters">
+        <section className="filter-surface operational-filter" aria-label="Product filters">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <label className="text-sm text-slate-300">
               Search products
@@ -69,7 +69,7 @@ export default function ProductCatalog({ divisions }: { divisions: Division[] })
 
         <div className="space-y-6">
           {filteredDivisions.map((division) => (
-            <section key={division.id} className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900" aria-labelledby={`division-${division.id}`}>
+            <section key={division.id} className="surface product-division" aria-labelledby={`division-${division.id}`}>
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-800/60 px-5 py-4">
                 <div>
                   <h2 id={`division-${division.id}`} className="text-xl font-semibold">{division.name}</h2>
@@ -92,8 +92,8 @@ export default function ProductCatalog({ divisions }: { divisions: Division[] })
         </div>
 
         {selectedProduct && (
-          <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/70 px-6" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
-            <section className="w-full max-w-lg rounded-lg border border-slate-700 bg-slate-900 p-6 shadow-xl">
+          <div className="ui-modal-backdrop" role="presentation">
+            <section className="ui-modal" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
               <div className="flex items-start justify-between gap-4">
                 <div><p className="text-xs uppercase text-slate-400">Master Medicine Item</p><h2 id="product-detail-title" className="mt-2 text-2xl font-semibold">{selectedProduct.name}</h2></div>
                 <button type="button" onClick={() => setSelectedProduct(null)} className="text-slate-400 hover:text-slate-100" aria-label="Close product details">Close</button>

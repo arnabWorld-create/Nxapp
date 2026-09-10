@@ -57,7 +57,8 @@ function classifyRow(validated: ValidatedRow): { rowType: 'DATA_ROW' | 'SUMMARY_
 
 export function isCnxStatementFormat(headers: string[]): boolean {
   const normalizedHeaders = new Set(headers.map((header) => header.trim().toLowerCase()));
-  return ['item', 'p.qty', 'p.val', 's.qty', 's.val', 'clstk'].every((header) => normalizedHeaders.has(header));
+  const hasSalesColumns = normalizedHeaders.has('s.qty') && normalizedHeaders.has('s.val');
+  return normalizedHeaders.has('item') && normalizedHeaders.has('clstk') && hasSalesColumns;
 }
 
 export function applyAutomaticQuantityUnit(validated: ValidatedRow, unit: string): ValidatedRow {

@@ -19,9 +19,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const userId = await resolveUserIdFromRequest(request);
     const user = userId ? await getUserById(userId) : null;
     if (!userId || !user) return NextResponse.json({ error: 'Missing authentication' }, { status: 401 });
-    if (!userHasPermission(user, 'manage_product')) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+    const canManageAll = userHasPermission(user, 'manage_product');
+    if (!canManageAll && user.role?.name !== 'SALES_USER') return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
     const existing = await prisma.distributor.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: 'Distributor not found' }, { status: 404 });
+    if (!canManageAll && existing.salesperson_user_id !== user.id) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     const body = await request.json();
     const data: Record<string, unknown> = {};
     if (body.name !== undefined) {
@@ -35,6 +37,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
     if (body.salesperson_user_id !== undefined) {
       const salespersonId = typeof body.salesperson_user_id === 'string' && body.salesperson_user_id.trim() ? body.salesperson_user_id.trim() : null;
+      if (!canManageAll && salespersonId !== user.id) return NextResponse.json({ error: 'Salesperson assignment cannot be changed' }, { status: 403 });
       if (salespersonId && !(await prisma.user.findFirst({ where: { id: salespersonId, status: 'ACTIVE' }, select: { id: true } }))) return NextResponse.json({ error: 'Active salesperson user not found' }, { status: 400 });
       data.salesperson_user_id = salespersonId;
     }

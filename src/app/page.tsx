@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ComboTrendChart from '../components/charts/ComboTrendChart';
 
 type Metric = { salesQty: number; salesValue: number };
 type DashboardResponse = {
@@ -28,29 +29,6 @@ function SectionHeader({ title, action, onAction }: { title: string; action?: st
 
 function Kpi({ label, value, detail, accent = '' }: { label: string; value: string; detail?: string; accent?: string }) {
   return <div className={`kpi ${accent}`}><p>{label}</p><strong>{value}</strong>{detail && <small>{detail}</small>}</div>;
-}
-
-function TrendChart({ data }: { data: Array<Metric & { month: string }> }) {
-  if (data.length === 0) return <div className="empty-state">Approved sales will appear here once a statement is available.</div>;
-  const width = 640;
-  const height = 180;
-  const max = Math.max(...data.map((item) => item.salesValue), 1);
-  const points = data.map((item, index) => {
-    const x = data.length === 1 ? width / 2 : (index / (data.length - 1)) * width;
-    const y = height - (item.salesValue / max) * (height - 28) - 10;
-    return { ...item, x, y };
-  });
-  const line = points.map((point) => `${point.x},${point.y}`).join(' ');
-  const area = `0,${height} ${line} ${width},${height}`;
-  return <div className="mini-chart" aria-label="Sales value trend chart">
-    <svg viewBox={`0 0 ${width} ${height}`} role="img" preserveAspectRatio="none">
-      <defs><linearGradient id="dashboardTrendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8de0aa" stopOpacity=".28" /><stop offset="100%" stopColor="#8de0aa" stopOpacity="0" /></linearGradient></defs>
-      <line className="chart-gridline" x1="0" y1="10" x2={width} y2="10" /><line className="chart-gridline" x1="0" y1={height / 2} x2={width} y2={height / 2} /><line className="chart-gridline" x1="0" y1={height - 1} x2={width} y2={height - 1} />
-      <polygon points={area} fill="url(#dashboardTrendFill)" /><polyline points={line} fill="none" className="chart-line" />
-      {points.map((point) => <circle key={point.month} cx={point.x} cy={point.y} r="4" className="chart-point" />)}
-    </svg>
-    <div className="chart-labels">{points.map((point) => <span key={point.month}>{new Date(`${point.month}-01T00:00:00`).toLocaleDateString(undefined, { month: 'short', year: '2-digit' })}</span>)}</div>
-  </div>;
 }
 
 export default function HomePage() {
@@ -105,8 +83,8 @@ export default function HomePage() {
     </section>
     {attentionCount > 0 && <section className="attention-strip"><span className="attention-mark">!</span><div><strong>Attention required</strong><span>{metrics.pendingImports > 0 ? `${metrics.pendingImports} processing` : ''}{metrics.pendingImports > 0 && metrics.reviewRequiredImports > 0 ? ' · ' : ''}{metrics.reviewRequiredImports > 0 ? `${metrics.reviewRequiredImports} ready for review` : ''}</span></div><button className="text-action" onClick={() => router.push('/imports')}>Review imports -&gt;</button></section>}
     <div className="dashboard-grid">
-      <section className="surface trend-surface"><SectionHeader title="Sales trend" action="View analytics" onAction={() => router.push('/sales-analytics')} /><TrendChart data={monthlyTrend.slice(-6)} /></section>
-      <section className="surface breakdown-surface"><SectionHeader title="Sales by division" />{divisionBreakdown.length === 0 ? <div className="empty-state">No division data in the current scope.</div> : <div className="breakdown-list">{divisionBreakdown.slice(0, 6).map((item) => <div className="breakdown-row" key={item.divisionId}><div><strong>{item.divisionName}</strong><small>{quantity.format(item.salesQty)} units</small></div><span><b>{money.format(item.salesValue)}</b><i style={{ width: `${Math.max((item.salesValue / maxDivision) * 100, 4)}%` }} /></span></div>)}</div>}</section>
+      <section className="surface trend-surface"><div className="section-header"><div><h2>Sales trend</h2><span className="panel-note">Sales value and quantity over time</span></div><button className="text-action" onClick={() => router.push('/sales-analytics')}>View analytics <span aria-hidden="true">-&gt;</span></button></div><ComboTrendChart data={monthlyTrend.slice(-6)} /></section>
+      <section className="surface breakdown-surface"><SectionHeader title="Sales by division" />{divisionBreakdown.length === 0 ? <div className="empty-state">No division data in the current scope.</div> : <div className="breakdown-list">{[...divisionBreakdown].sort((a, b) => b.salesValue - a.salesValue).slice(0, 6).map((item) => <div className="breakdown-row" key={item.divisionId}><div><strong>{item.divisionName}</strong><small>{quantity.format(item.salesQty)} units</small></div><span><b>{money.format(item.salesValue)}</b><i style={{ width: `${Math.max((item.salesValue / maxDivision) * 100, 4)}%` }} /></span></div>)}</div>}</section>
     </div>
     <div className="dashboard-grid lower-grid">
       <section className="surface"><SectionHeader title="Top products" action="Products" onAction={() => router.push('/products')} />{productBreakdown.length === 0 ? <div className="empty-state">No product sales in the current scope.</div> : <div className="compact-table"><div className="compact-table-head"><span>Product</span><span>Sales value</span></div>{productBreakdown.slice(0, 5).map((item) => <div className="compact-table-row" key={item.productId}><div><strong>{item.productName}</strong><small>{item.divisionName}</small></div><span>{money.format(item.salesValue)}</span></div>)}</div>}</section>

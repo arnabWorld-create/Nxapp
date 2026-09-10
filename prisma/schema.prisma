@@ -37,6 +37,8 @@ model User {
   id            String     @id @default(dbgenerated("gen_random_uuid()"))
   name          String
   email         String     @unique
+  mobile_number String
+  city          String
   password_hash String
   role_id       String
   status        UserStatus @default(ACTIVE)

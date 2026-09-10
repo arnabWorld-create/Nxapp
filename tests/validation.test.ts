@@ -69,6 +69,7 @@ test('missing source item name is invalid', () => {
 
 test('CNX format applies STRIP automatically without changing generic validation', () => {
   assert.equal(isCnxStatementFormat(['Item', 'P.Qty', 'P.Val', 'S.Qty', 'S.Val', 'ClStk']), true);
+  assert.equal(isCnxStatementFormat(['Item', 'ClStk', 'ClVal', 'OpStk', 'S.Qty', 'S.Sch', 'S.Val']), true);
   assert.equal(isCnxStatementFormat(['source_item_name', 'reported_purchase_qty']), false);
 
   const validated = validateMappedRow(2, {
