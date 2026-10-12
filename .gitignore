@@ -11,7 +11,9 @@ pnpm-debug.log*
 *.log
 coverage
 uploads/
-storage/
+# Keep the app storage library code tracked. Runtime storage files remain ignored via uploads/.
+!src/lib/storage/
+!src/lib/storage/**
 test-output.txt
 *.tsbuildinfo
 qa-browser-approval.csv
