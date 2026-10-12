@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "test:prepare": "node tests/prepare-test-database.mjs",
     "test": "tsx --import ./tests/test-environment.mjs --test --test-concurrency=1 tests/**/*.test.ts",
     "prisma:generate": "prisma generate",
