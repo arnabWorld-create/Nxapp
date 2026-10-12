@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import test, { afterEach, before } from 'node:test';
 import prisma from '../src/lib/prisma';
 import { GET as importsGET } from '../src/app/api/imports/route';
+import { DELETE as importsDELETE } from '../src/app/api/imports/[id]/route';
 import { POST as retryPOST } from '../src/app/api/imports/[id]/retry/route';
 import { processImport } from '../src/lib/import/process';
 import { seedTestDatabase, cleanupTestData } from './test-setup';
@@ -28,7 +29,7 @@ afterEach(async () => {
 async function createUser(roleName: string) {
   const role = await prisma.role.findUnique({ where: { name: roleName } });
   assert(role);
-  const user = await prisma.user.create({ data: { name: `history-${roleName}`, email: `history-${roleName}-${Date.now()}@example.com`, password_hash: 'test-hash', role_id: role.id } });
+  const user = await prisma.user.create({ data: { name: `history-${roleName}`, email: `history-${roleName}-${Date.now()}@example.com`, mobile_number: `test-${Date.now()}-${createdUsers.length}`, city: 'Test City', password_hash: 'test-hash', role_id: role.id } });
   createdUsers.push(user.id);
   return user;
 }
@@ -52,6 +53,10 @@ function retryRequest(importId: string, userId: string) {
   return retryPOST(new Request(`http://localhost/api/imports/${importId}/retry`, { method: 'POST', headers: { 'x-user-id': userId } }), { params: Promise.resolve({ id: importId }) });
 }
 
+function deleteRequest(importId: string, userId?: string) {
+  return importsDELETE(new Request(`http://localhost/api/imports/${importId}`, { method: 'DELETE', headers: userId ? { 'x-user-id': userId } : {} }), { params: Promise.resolve({ id: importId }) });
+}
+
 test('Import History API', async (t) => {
   await t.test('requires authentication', async () => {
     const response = await request('http://localhost/api/imports');
@@ -68,6 +73,65 @@ test('Import History API', async (t) => {
     const admin = await createUser('ADMIN');
     const adminData = await (await request('http://localhost/api/imports?pageSize=100', admin.id)).json();
     assert.strictEqual(adminData.total, 2);
+  });
+
+  await t.test('delete requires authentication and import ownership', async () => {
+    assert.strictEqual((await deleteRequest('missing-import')).status, 401);
+    const owner = await createUser('MANAGER');
+    const other = await createUser('MANAGER');
+    const record = await createImport(owner.id, 'owned-delete.csv', 'Item,Qty\nOwned,1');
+
+    assert.strictEqual((await deleteRequest(record.id, other.id)).status, 403);
+    assert.ok(await prisma.import.findUnique({ where: { id: record.id } }));
+  });
+
+  await t.test('delete removes an owned import, its rows, and its unshared file', async () => {
+    const owner = await createUser('MANAGER');
+    const record = await createImport(owner.id, 'delete.csv', 'Item,Qty\nDelete,1');
+    await prisma.importRow.create({ data: { import_id: record.id, source_row_number: 1, raw_data_json: { Item: 'Delete', Qty: 1 } } });
+    const filePath = path.join(uploadsDir, `${record.file_sha256}.csv`);
+
+    const response = await deleteRequest(record.id, owner.id);
+    assert.strictEqual(response.status, 200);
+    assert.strictEqual((await response.json()).deleted, true);
+    assert.equal(await prisma.import.findUnique({ where: { id: record.id } }), null);
+    assert.strictEqual(await prisma.importRow.count({ where: { import_id: record.id } }), 0);
+    assert.strictEqual(await fs.access(filePath).then(() => true, () => false), false);
+    assert.ok(await prisma.auditLog.findFirst({ where: { action: 'IMPORT_DELETED', entity_id: record.id } }));
+  });
+
+  await t.test('delete preserves a stored file referenced by another import', async () => {
+    const owner = await createUser('MANAGER');
+    const first = await createImport(owner.id, 'duplicate-a.csv', 'Item,Qty\nDuplicate,1');
+    await createImport(owner.id, 'duplicate-b.csv', 'Item,Qty\nDuplicate,1');
+    const filePath = path.join(uploadsDir, `${first.file_sha256}.csv`);
+
+    const response = await deleteRequest(first.id, owner.id);
+    assert.strictEqual(response.status, 200);
+    assert.strictEqual(await fs.access(filePath).then(() => true, () => false), true);
+  });
+
+  await t.test('delete of a committed import also removes its linked statement rows', async () => {
+    const owner = await createUser('MANAGER');
+    const record = await createImport(owner.id, 'committed-delete.csv', 'Item,Qty\nCommitted,1');
+    const statement = await prisma.statement.create({
+      data: {
+        source_file_name: record.file_name,
+        period_start_date: new Date('2026-01-01'),
+        period_end_date: new Date('2026-01-31'),
+        status: 'APPROVED',
+        uploaded_by: owner.id,
+      },
+    });
+    const importRow = await prisma.importRow.create({ data: { import_id: record.id, source_row_number: 1, raw_data_json: { Item: 'Committed', Qty: 1 } } });
+    await prisma.statementRow.create({ data: { statement_id: statement.id, import_row_id: importRow.id, source_item_name: 'Committed', raw_row_json: { Item: 'Committed', Qty: 1 } } });
+    await prisma.import.update({ where: { id: record.id }, data: { status: 'COMMITTED', statement_id: statement.id } });
+
+    const response = await deleteRequest(record.id, owner.id);
+    assert.strictEqual(response.status, 200);
+    assert.equal(await prisma.statement.findUnique({ where: { id: statement.id } }), null);
+    assert.strictEqual(await prisma.statementRow.count({ where: { statement_id: statement.id } }), 0);
+    assert.equal(await prisma.import.findUnique({ where: { id: record.id } }), null);
   });
 
   await t.test('paginates, searches, filters status, and returns aggregates/uploader', async () => {

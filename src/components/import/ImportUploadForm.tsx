@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import MappingPanel from './MappingPanel';
 import type { HeaderMappingResult } from '../../lib/import/mapping';
 import { isAllowedImportExtension } from '../../lib/import/file-types';
@@ -8,8 +9,10 @@ import { isAllowedImportExtension } from '../../lib/import/file-types';
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 
 export default function ImportUploadForm() {
+  const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [uploadedImportId, setUploadedImportId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mappingResults, setMappingResults] = useState<HeaderMappingResult[]>([]);
@@ -23,6 +26,8 @@ export default function ImportUploadForm() {
       setSelectedFile(null);
       return;
     }
+
+    setUploadedImportId(null);
 
     if (!isAllowedImportExtension(file.name)) {
       setErrorMessage('Only .csv, .xls, and .xlsx files are supported');
@@ -85,12 +90,23 @@ export default function ImportUploadForm() {
       }
 
       setStatusMessage(`Import uploaded successfully. Import ID: ${payload.import.id}`);
+      setUploadedImportId(payload.import.id);
       setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       setErrorMessage('Unable to upload file. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleIdleButtonClick = () => {
+    if (uploadedImportId) {
+      router.push(`/import/${uploadedImportId}/review`);
+      return;
+    }
+
+    fileInputRef.current?.click();
   };
 
   return (
@@ -123,14 +139,17 @@ export default function ImportUploadForm() {
         <div className="mapping-status"><MappingPanel file={selectedFile} onMappingChange={handleMappingChange} /></div>
 
         {errorMessage ? <div className="import-message error-state">{errorMessage}</div> : null}
-        {statusMessage ? <div className="import-message success-state">{statusMessage}</div> : null}
+        {statusMessage ? (
+          <div className="import-message success-state" role="status">{statusMessage}</div>
+        ) : null}
 
         <button
-          type="submit"
-          disabled={isSubmitting || !selectedFile}
+          type={selectedFile ? 'submit' : 'button'}
+          onClick={selectedFile ? undefined : handleIdleButtonClick}
+          disabled={isSubmitting}
           className="primary-action import-submit"
         >
-          {isSubmitting ? 'Uploading…' : 'Upload & Process Statement'}
+          {isSubmitting ? 'Uploading…' : selectedFile ? 'Upload & Process Statement' : uploadedImportId ? 'Go to Review' : 'Choose a statement file'}
         </button>
       </form>
     </div>

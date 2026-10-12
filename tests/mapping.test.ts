@@ -216,9 +216,10 @@ test('CNX canonical mappings remain auto mapped', () => {
   }
 });
 
-test('ignored fields do not produce MAPPING_REQUIRED warnings during validation', () => {
+test('ignored fields including Rate do not produce MAPPING_REQUIRED warnings during validation', () => {
   const mappingResults = buildHeaderMappingResults([
     'Item',
+    'Rate',
     'P.Qty',
     'P.Val',
     'S.Qty',
@@ -237,6 +238,7 @@ test('ignored fields do not produce MAPPING_REQUIRED warnings during validation'
     1,
     {
       Item: 'CNX Test Item',
+      Rate: '14.00',
       'P.Qty': '12',
       'P.Val': '123.45',
       'S.Qty': '8',

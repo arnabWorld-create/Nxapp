@@ -73,8 +73,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="sidebar-footer">
           <div className="user-chip"><span className="avatar">{user?.name?.charAt(0).toUpperCase() || 'U'}</span><span className="user-copy"><strong>{user?.name || 'Loading account'}</strong><small>{user?.role || 'Authenticated user'}</small></span></div>
-          <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}><span aria-hidden="true">{theme === 'dark' ? '☀' : '◐'}</span>{theme === 'dark' ? 'Light' : 'Dark'}</button>
-          <button className="sign-out" onClick={signOut}>Sign out</button>
+          <div className="sidebar-footer-actions"><button className="sign-out" onClick={signOut}>Sign out</button><button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}><span aria-hidden="true">{theme === 'dark' ? '☀' : '◐'}</span>{theme === 'dark' ? 'Light' : 'Dark'}</button></div>
         </div>
       </aside>
       {mobileOpen && <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}

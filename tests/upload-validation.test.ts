@@ -23,6 +23,8 @@ async function createUser(roleName: string) {
     data: {
       name: `test-${roleName.toLowerCase()}-${Date.now()}`,
       email: `test-${roleName.toLowerCase()}-${Date.now()}@example.com`,
+      mobile_number: `test-${Date.now()}-${createdUsers.length}`,
+      city: 'Test City',
       password_hash: 'test-hash',
       role_id: role.id,
     },
@@ -259,18 +261,18 @@ test('SHA-256 is deterministic and content sensitive', () => {
   assert.equal(hash1.length, 64);
 });
 
-test('AUTHORIZATION allows upload_import and rejects others', async () => {
-  const allowedUser = await createUser('SALES_USER');
-  const forbiddenUser = await createUser('MANAGER');
+test('AUTHORIZATION allows upload_import for SALES_USER and MANAGER', async () => {
+  const salesUser = await createUser('SALES_USER');
+  const managerUser = await createUser('MANAGER');
   const content = 'source_item_name\nAuthorized';
   const file = new File([content], 'auth.csv', { type: 'text/csv' });
 
-  const allowed = await processImportUpload(file, allowedUser.id);
-  createdImports.push({ id: allowed.importRecord.id, fileKey: allowed.storedFileKey });
+  const salesUpload = await processImportUpload(file, salesUser.id);
+  createdImports.push({ id: salesUpload.importRecord.id, fileKey: salesUpload.storedFileKey });
 
-  await assert.rejects(async () => {
-    await processImportUpload(file, forbiddenUser.id);
-  }, AuthorizationError);
+  const managerUpload = await processImportUpload(file, managerUser.id);
+  assert.equal(managerUpload.importRecord.uploaded_by, managerUser.id);
+  createdImports.push({ id: managerUpload.importRecord.id, fileKey: managerUpload.storedFileKey });
 
   await assert.rejects(async () => {
     await processImportUpload(file, 'nonexistent-user-id');

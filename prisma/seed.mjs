@@ -59,8 +59,9 @@ async function main() {
   const rolePermissions = [
     // ADMIN gets every permission
     ...permissions.map(name => ({ role_id: adminRole.id, permission_id: permissionMap[name].id })),
-    // MANAGER gets import review/commit, statement/report, and brand/product management
+    // MANAGER gets import upload/review/commit, statement/report, and brand/product management
     ...[
+      'upload_import',
       'view_import',
       'review_import',
       'commit_import',

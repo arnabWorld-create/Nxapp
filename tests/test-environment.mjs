@@ -18,3 +18,4 @@ testUrl.searchParams.set('options', `-c search_path=${schema},public`);
 process.env.DATABASE_URL = testUrl.toString();
 process.env.TEST_DATABASE_SCHEMA = schema;
 process.env.NODE_ENV = 'test';
+process.env.STORAGE_PROVIDER = 'local';

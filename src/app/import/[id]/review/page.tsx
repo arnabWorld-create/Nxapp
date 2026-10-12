@@ -100,8 +100,9 @@ export default function ImportReviewPage() {
   const [duplicateStatus, setDuplicateStatus] = useState<string>('');
   const [mappingStatus, setMappingStatus] = useState<string>('');
   const [rowType, setRowType] = useState<string>('');
-  const [defaultUnit, setDefaultUnit] = useState('PCS');
+  const [defaultUnit, setDefaultUnit] = useState('');
   const [unitApplying, setUnitApplying] = useState(false);
+  const [unitNotice, setUnitNotice] = useState<string | null>(null);
   const [summaryAcknowledging, setSummaryAcknowledging] = useState(false);
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
@@ -326,9 +327,11 @@ export default function ImportReviewPage() {
     try {
       const response = await fetch(`/api/imports/${importId}/review/quantity-unit`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ unit: defaultUnit, confirmed: true }),
+        body: JSON.stringify({ unit: defaultUnit.trim(), confirmed: true }),
       });
-      if (!response.ok) throw new Error((await response.json()).error || 'Unable to apply unit');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Unable to apply unit');
+      setUnitNotice(`Applied ${defaultUnit.trim()} to ${result.affectedRows} rows.`);
       await fetchReview();
     } catch (error) {
       setDecisionError(error instanceof Error ? error.message : 'Unable to apply unit');
@@ -479,6 +482,40 @@ export default function ImportReviewPage() {
         </div>
 
         {decisionError && <p className="mb-6 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">{decisionError}</p>}
+        {unitNotice && <p className="mb-6 rounded-lg border border-green-800 bg-green-900/20 p-3 text-sm text-green-300" role="status">{unitNotice}</p>}
+
+        {summary.dataRowsMissingQuantityUnit > 0 && !importInfo.defaultQuantityUnitConfirmed && (
+          <section className="mb-8 rounded-lg border border-amber-800 bg-amber-900/10 p-5" aria-label="Default quantity unit">
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
+              <div>
+                <h2 className="text-lg font-semibold">Default quantity unit</h2>
+                <p className="mt-1 text-sm text-slate-400">No unit column was found. Set the unit for the {summary.dataRowsMissingQuantityUnit} data rows that are missing one.</p>
+              </div>
+              <label className="grid gap-2 text-sm text-slate-300">Unit
+                <input
+                  value={defaultUnit}
+                  onChange={(event) => { setDefaultUnit(event.target.value.toUpperCase()); setUnitNotice(null); }}
+                  placeholder="STRIP"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handleApplyDefaultUnit}
+                disabled={unitApplying || !defaultUnit.trim()}
+                className="rounded-lg bg-amber-600 px-4 py-2 font-semibold text-white hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {unitApplying ? 'Applying...' : 'Apply to missing units'}
+              </button>
+            </div>
+          </section>
+        )}
+
+        {importInfo.defaultQuantityUnitConfirmed && (
+          <p className="mb-6 rounded-lg border border-green-800 bg-green-900/20 p-3 text-sm text-green-300">
+            Default quantity unit confirmed: {importInfo.defaultQuantityUnit}
+          </p>
+        )}
 
         <div className="mb-8 rounded-lg bg-slate-900 border border-slate-800 p-6">
           <h2 className="text-lg font-semibold mb-4">Filters & Search</h2>

@@ -26,6 +26,7 @@ const PERMISSIONS = [
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   ADMIN: PERMISSIONS,
   MANAGER: [
+    'upload_import',
     'view_import',
     'review_import',
     'commit_import',

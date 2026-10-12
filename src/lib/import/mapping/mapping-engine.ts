@@ -4,6 +4,7 @@ import type { CanonicalField, HeaderMappingResult, ImportMappingTemplate, Mappin
 
 const AMBIGUOUS_WEIGHT = 0.75;
 const KNOWN_IGNORED_HEADERS = new Set([
+  'rate',
   'opstk',
   'p sch',
   's sch',

@@ -234,7 +234,7 @@ async function main() {
 
   const expectedMatrix = {
     ADMIN: ['upload_import','view_import','review_import','commit_import','view_statement','view_report','manage_brand','manage_product','manage_mapping','view_audit'],
-    MANAGER: ['review_import','commit_import','view_statement','view_report','manage_brand','manage_product'],
+    MANAGER: ['upload_import','review_import','commit_import','view_statement','view_report','manage_brand','manage_product'],
     SALES_USER: ['upload_import','view_import','view_statement','manage_mapping']
   };
   const expectedTotal = Object.values(expectedMatrix).reduce((sum, arr) => sum + arr.length, 0);
