@@ -748,21 +748,21 @@ export default function ImportReviewPage() {
         {showCommitModal && (
           <div className="ui-modal-backdrop" role="presentation">
             <div className="ui-modal commit-dialog" role="dialog" aria-modal="true" aria-labelledby="commit-dialog-title">
-              <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
-                <h2 id="commit-dialog-title" className="text-xl font-semibold">Commit Import</h2>
+              <div className="sticky top-0 bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <h2 id="commit-dialog-title" className="text-xl font-semibold text-slate-900">Commit Import</h2>
                 <button
                   onClick={handleCloseCommit}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="text-slate-500 hover:text-slate-700"
                   disabled={commitLoading}
                 >
                   <span aria-hidden="true">×</span>
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 text-slate-900">
                 {commitError && (
-                  <div className="rounded-lg bg-red-900/20 border border-red-800 p-4">
-                    <p className="text-red-300 text-sm">{commitError}</p>
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                    <p className="text-red-700 text-sm">{commitError}</p>
                   </div>
                 )}
 
@@ -777,16 +777,16 @@ export default function ImportReviewPage() {
                   </div>
                 ) : preflightData ? (
                   <div className="space-y-4">
-                    <div className={`rounded-lg p-4 ${preflightData.canCommit ? 'bg-green-900/20 border border-green-800' : 'bg-red-900/20 border border-red-800'}`}>
+                    <div className={`rounded-lg p-4 ${preflightData.canCommit ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-lg font-semibold ${preflightData.canCommit ? 'text-green-300' : 'text-red-300'}`}>
+                        <span className={`text-lg font-semibold ${preflightData.canCommit ? 'text-green-700' : 'text-red-700'}`}>
                           {preflightData.canCommit ? '✓ Ready to Commit' : '✗ Commit Blocked'}
                         </span>
                         {preflightData.alreadyCommitted && (
-                          <span className="px-2 py-1 bg-amber-900 text-amber-300 text-xs rounded">Already Committed</span>
+                          <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded">Already Committed</span>
                         )}
                       </div>
-                      <p className={`text-sm ${preflightData.canCommit ? 'text-green-200' : 'text-red-200'}`}>
+                      <p className={`text-sm ${preflightData.canCommit ? 'text-green-700' : 'text-red-700'}`}>
                         {preflightData.canCommit
                           ? `All ${preflightData.eligibleRows} eligible rows will be committed to a new Statement.`
                           : `${preflightData.blockers.length} blocker(s) must be resolved before commit.`}
@@ -795,10 +795,10 @@ export default function ImportReviewPage() {
 
                     {preflightData.blockers.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-semibold text-slate-300 mb-2">Blockers:</h4>
+                        <h4 className="text-sm font-semibold text-slate-700 mb-2">Blockers:</h4>
                         <ul className="space-y-1">
                           {preflightData.blockers.map((blocker, idx) => (
-                            <li key={idx} className="text-sm text-red-300 flex items-center gap-2">
+                            <li key={idx} className="text-sm text-red-700 flex items-center gap-2">
                               <span>•</span> {blocker}
                             </li>
                           ))}
@@ -807,33 +807,33 @@ export default function ImportReviewPage() {
                     )}
 
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Total Rows</p>
-                        <p className="font-semibold">{preflightData.totalRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Total Rows</p>
+                        <p className="font-semibold text-slate-900">{preflightData.totalRows}</p>
                       </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Eligible Rows</p>
-                        <p className="font-semibold text-green-300">{preflightData.eligibleRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Eligible Rows</p>
+                        <p className="font-semibold text-green-700">{preflightData.eligibleRows}</p>
                       </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Invalid Rows</p>
-                        <p className="font-semibold text-red-300">{preflightData.invalidRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Invalid Rows</p>
+                        <p className="font-semibold text-red-700">{preflightData.invalidRows}</p>
                       </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Review Required</p>
-                        <p className="font-semibold text-yellow-300">{preflightData.reviewRequiredRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Review Required</p>
+                        <p className="font-semibold text-yellow-700">{preflightData.reviewRequiredRows}</p>
                       </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Duplicates</p>
-                        <p className="font-semibold text-orange-300">{preflightData.duplicateRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Duplicates</p>
+                        <p className="font-semibold text-orange-700">{preflightData.duplicateRows}</p>
                       </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Unmapped</p>
-                        <p className="font-semibold text-slate-300">{preflightData.unmappedRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Unmapped</p>
+                        <p className="font-semibold text-slate-800">{preflightData.unmappedRows}</p>
                       </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <p className="text-slate-400">Missing Confirmed</p>
-                        <p className="font-semibold text-amber-300">{preflightData.missingConfirmedMappingRows}</p>
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p className="text-slate-500">Missing Confirmed</p>
+                        <p className="font-semibold text-amber-700">{preflightData.missingConfirmedMappingRows}</p>
                       </div>
                     </div>
                   </div>

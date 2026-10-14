@@ -63,13 +63,6 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <div className="login-layout">
-        <section className="login-intro">
-          <span className="login-mark">N</span>
-          <p className="eyebrow">NX APP / SALES OPERATIONS</p>
-          <h1>Clarity for every commercial decision.</h1>
-          <p>Manage statements, master data, and approved sales performance from one controlled workspace.</p>
-          <div className="login-trust"><span />Secure workspace <span />Role-aware access <span />Audit-ready records</div>
-        </section>
         <section className="login-panel" aria-labelledby="login-title">
           <div className="login-panel-header">
             <p className="eyebrow">Welcome back</p>
@@ -113,7 +106,7 @@ export default function LoginPage() {
             </button>
           </form>
           <p className="login-footer">Access is managed by your NX APP role and permissions.</p>
-          <p className="login-footer"><Link href={'/register' as any}>Create a sales user account</Link></p>
+          <p className="login-footer"><Link href={'/register' as any}>Request access</Link></p>
         </section>
       </div>
     </main>
