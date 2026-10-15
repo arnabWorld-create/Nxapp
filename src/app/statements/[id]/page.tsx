@@ -243,7 +243,7 @@ export default function StatementDetailPage() {
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="statement-detail-header flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-semibold">{statement.source_file_name}</h1>
               {statement.name && <p className="mt-1 text-slate-400">{statement.name}</p>}

@@ -707,6 +707,7 @@ html[data-theme='dark'] .import-delete-button:hover:not(:disabled) { border-colo
 }
 
 @media (max-width: 800px) {
+  .app-content, .page-frame, .operational-page > div, .analytics-page > div { min-width: 0; }
   .app-sidebar {
     height: 100vh;
     height: 100dvh;
@@ -733,6 +734,13 @@ html[data-theme='dark'] .import-delete-button:hover:not(:disabled) { border-colo
   .page-header > div:first-child { width: 100%; min-width: 0; }
   .page-header .primary-action { align-self: flex-start; }
   .review-actions { justify-content: flex-start; }
+  .statement-detail-header { align-items: flex-start; flex-direction: column; }
+  .statement-detail-header > div:first-child { min-width: 0; width: 100%; }
+  .statement-detail-header h1 { max-width: 100%; overflow-wrap: anywhere; }
+  .statement-detail-header > div:last-child { align-items: flex-start; flex-wrap: wrap; }
+  .import-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .import-filter > div { grid-column: 1 / -1; }
+  .operational-table.overflow-x-auto { overflow-x: auto; overflow-y: hidden; }
   .table-scroll, .report-table-wrap, .overflow-x-auto {
     max-width: 100%;
     overscroll-behavior-x: contain;
@@ -745,6 +753,9 @@ html[data-theme='dark'] .import-delete-button:hover:not(:disabled) { border-colo
   .page-header { gap: 14px; margin-bottom: 22px; }
   .page-header h1, .import-page-header h1 { overflow-wrap: anywhere; }
   .page-header .primary-action { align-self: stretch; }
+  .page-header > .flex { width: 100%; }
+  .page-header > .flex > button { flex: 1 1 auto; }
+  .catalog-count { flex: 1 1 100%; }
   .surface { padding: 15px; }
   .section-header { align-items: flex-start; }
   .section-header > div { min-width: 0; }
@@ -752,10 +763,22 @@ html[data-theme='dark'] .import-delete-button:hover:not(:disabled) { border-colo
   .kpi strong, .analytics-kpi strong { overflow-wrap: anywhere; }
   .filter-heading, .statement-filter-heading { width: 100%; }
   .filter-heading .secondary-action { width: 100%; }
+  .import-filter { grid-template-columns: minmax(0, 1fr); }
+  .statement-detail-header > div:last-child { width: 100%; }
+  .statement-detail-header > div:last-child > * { flex: 1 1 auto; }
+  .page-header > .flex > button { width: auto; }
+  .ui-modal-body .grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
+  .fixed.inset-0 { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); }
+  .fixed.inset-0 > form, .fixed.inset-0 > div {
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
   .app-content input, .app-content select, .app-content textarea {
     min-height: 44px;
     font-size: 16px;
   }
+  .app-content button { min-height: 44px; }
   .primary-action, .secondary-action, .review-actions > *, .ui-modal-footer button {
     min-height: 44px;
   }
