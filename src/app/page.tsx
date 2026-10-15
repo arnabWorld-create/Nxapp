@@ -74,7 +74,7 @@ export default function HomePage() {
   const attentionCount = metrics.pendingImports + metrics.reviewRequiredImports;
 
   return <main className="page-frame dashboard-page">
-    <header className="page-header"><div><p className="eyebrow">{isManager ? 'Commercial overview' : 'My business overview'}</p><h1>{isManager ? 'Good morning' : `Good morning, ${userName}`}</h1><p className="page-subtitle">A focused view of approved sales and the work that needs your attention.</p></div><button className="primary-action" onClick={() => router.push('/import')}>+ New import</button></header>
+    <header className="page-header"><div><h1>Hi, {userName}</h1><p className="page-subtitle">A focused view of approved sales and the work that needs your attention.</p></div><button className="primary-action" onClick={() => router.push('/import')}>+ New import</button></header>
     <section className="kpi-grid" aria-label="Sales summary">
       <Kpi label="Sales value" value={money.format(Number(metrics.totalSalesValue))} detail={metrics.salesValueChange === null ? 'No previous period' : `${metrics.salesValueChange >= 0 ? '+' : ''}${metrics.salesValueChange.toFixed(1)}% vs previous period`} accent="primary" />
       <Kpi label="Sales quantity" value={quantity.format(metrics.totalSalesQuantity)} detail="Approved units" />
