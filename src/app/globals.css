@@ -707,7 +707,8 @@ html[data-theme='dark'] .import-delete-button:hover:not(:disabled) { border-colo
 }
 
 @media (max-width: 800px) {
-  .app-content, .page-frame, .operational-page > div, .analytics-page > div { min-width: 0; }
+  .app-content { width: 100%; min-width: 0; margin-left: 0; }
+  .page-frame, .operational-page > div, .analytics-page > div { min-width: 0; }
   .app-sidebar {
     height: 100vh;
     height: 100dvh;
