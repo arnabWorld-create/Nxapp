@@ -705,3 +705,72 @@ html[data-theme='dark'] .import-delete-button:hover:not(:disabled) { border-colo
   .review-actions > * { flex: 1 1 auto; }
   .catalog-count { width: 100%; text-align: left; }
 }
+
+@media (max-width: 800px) {
+  .app-sidebar {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    visibility: hidden;
+    transition: transform .2s ease, visibility .2s ease;
+  }
+  .app-sidebar.is-open { visibility: visible; }
+  .sidebar-nav { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .nav-link { min-height: 44px; }
+  .mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    height: 62px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .menu-button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; }
+  .page-frame { padding: 30px clamp(18px, 4vw, 32px) 44px; }
+  .page-header { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 25px; }
+  .page-header > div:first-child { width: 100%; min-width: 0; }
+  .page-header .primary-action { align-self: flex-start; }
+  .review-actions { justify-content: flex-start; }
+  .table-scroll, .report-table-wrap, .overflow-x-auto {
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-frame { padding: 24px 14px 36px; }
+  .page-header { gap: 14px; margin-bottom: 22px; }
+  .page-header h1, .import-page-header h1 { overflow-wrap: anywhere; }
+  .page-header .primary-action { align-self: stretch; }
+  .surface { padding: 15px; }
+  .section-header { align-items: flex-start; }
+  .section-header > div { min-width: 0; }
+  .kpi, .analytics-kpi { min-width: 0; }
+  .kpi strong, .analytics-kpi strong { overflow-wrap: anywhere; }
+  .filter-heading, .statement-filter-heading { width: 100%; }
+  .filter-heading .secondary-action { width: 100%; }
+  .app-content input, .app-content select, .app-content textarea {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .primary-action, .secondary-action, .review-actions > *, .ui-modal-footer button {
+    min-height: 44px;
+  }
+  .quick-actions button { min-height: 44px; }
+  .login-page { padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom)); }
+  .login-panel { padding: 22px 18px; }
+  .login-form input { font-size: 16px; }
+  .ui-modal-backdrop { padding: 12px; }
+  .ui-modal { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
+  .ui-modal-header { padding: 18px 16px 14px; }
+  .ui-modal-body { padding: 18px 16px; }
+  .ui-modal-footer { flex-wrap: wrap; padding: 14px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .app-sidebar { transition: none; }
+}

@@ -61,7 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="brand-mark">N</span>
           <span className="brand-copy"><strong>NX APP</strong><small>Sales operations</small></span>
         </div>
-        <nav className="sidebar-nav" aria-label="Primary navigation">
+        <nav id="primary-navigation" className="sidebar-nav" aria-label="Primary navigation">
           {sections.map((section) => {
             const links = visibleNavigation.filter((item) => item.section === section);
             if (links.length === 0) return null;
@@ -78,7 +78,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       {mobileOpen && <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
       <div className="app-content">
-        <header className="mobile-header"><button className="menu-button" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><span aria-hidden="true">☰</span></button><span className="mobile-brand"><strong>NX APP</strong><small>Sales operations</small></span><button className="theme-toggle mobile-theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}><span aria-hidden="true">{theme === 'dark' ? '☀' : '◐'}</span></button></header>
+        <header className="mobile-header"><button className="menu-button" onClick={() => setMobileOpen(true)} aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={mobileOpen}><span aria-hidden="true">☰</span></button><span className="mobile-brand"><strong>NX APP</strong><small>Sales operations</small></span><button className="theme-toggle mobile-theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}><span aria-hidden="true">{theme === 'dark' ? '☀' : '◐'}</span></button></header>
         {children}
       </div>
     </div>
